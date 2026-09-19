@@ -1,4 +1,4 @@
-pythonimport os
+import os
 import random
 import time
 from flask import Flask, jsonify, render_template, request
