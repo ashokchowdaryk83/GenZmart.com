@@ -1,11 +1,103 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>Genzmart.com</title>
+    <title>Live Integrated Rupee ERP</title>
+    <link rel="stylesheet" href="https://jsdelivr.net">
+    <script>
+        async function fetchMarket() {
+            try {
+                let res = await fetch('/api/market');
+                let tickers = await res.json();
+                let html = '';
+                for(let key in tickers) {
+                    html += `<div class="col-md-3"><div class="p-3 bg-dark text-white rounded text-center mb-3">
+                             <small class="text-warning">${key}</small><h4>${tickers[key]}</h4></div></div>`;
+                }
+                document.getElementById('ticker-row').innerHTML = html;
+            } catch (e) { console.error(e); }
+        }
+        async function loadProducts() {
+            try {
+                let res = await fetch('/api/products');
+                let prods = await res.json();
+                let html = '';
+                for(let id in prods) {
+                    html += `<tr>
+                        <td><b>${prods[id].name}</b><br><small class="text-muted">${prods[id].cat}</small></td>
+                        <td>Rupees ${prods[id].price.toLocaleString('en-IN')}</td>
+                        <td>Buy ${prods[id].bulk_qty}+ get ${prods[id].bulk_disc}% off</td>
+                        <td><span class="badge bg-info">${prods[id].stock} units</span></td>
+                        <td>
+                            <input type="number" id="qty-${id}" value="1" min="1" class="form-control d-inline-block w-50 me-2" style="max-width:80px;">
+                            <button class="btn btn-success btn-sm" onclick="triggerOrder('${id}')">Process Order</button>
+                        </td>
+                    </tr>`;
+                }
+                document.getElementById('product-table').innerHTML = html;
+            } catch (e) { console.error(e); }
+        }
+        async function triggerOrder(id) {
+            try {
+                let qty = document.getElementById('qty-' + id).value;
+                let res = await fetch('/api/order', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({id: id, qty: qty})
+                });
+                let result = await res.json();
+                if(result.error) {
+                    alert(result.error);
+                } else {
+                    let logHtml = `<div class="alert alert-success mt-2">
+                        <b>Invoice:</b> ${result.invoice_no} | <b>Processed:</b> ${result.amount_processed}<br>
+                        <small class="text-primary">${result.pp_info}</small><br>
+                        <small class="text-muted">${result.fico_log}</small>
+                    </div>`;
+                    document.getElementById('transaction-log').insertAdjacentHTML('afterbegin', logHtml);
+                    loadProducts();
+                }
+            } catch (e) { console.error(e); }
+        }
+        window.onload = function() {
+            fetchMarket();
+            loadProducts();
+            setInterval(fetchMarket, 5000);
+        }
+    </script>
 </head>
-<body>
-    <h1>Welcome to Genzmart.com</h1>
-    <p>Own ERP and online sales webmodel coming soon!</p>
+<body class="bg-light p-4">
+    <div class="container-fluid">
+        <h1 class="mb-4 text-center text-primary fw-bold">Enterprise Integrated Rupee ERP Architecture</h1>
+        <h5 class="text-muted mb-3">Live Global Commodity Tickers</h5>
+        <div class="row" id="ticker-row"></div>
+        <div class="row mt-4">
+            <div class="col-lg-8">
+                <div class="card p-3 shadow-sm mb-4">
+                    <h4 class="card-title text-success mb-3">Material Management & Sales Hub</h4>
+                    <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Product Details</th>
+                                    <th>Base Price</th>
+                                    <th>Bulk Engine</th>
+                                    <th>Stock Control</th>
+                                    <th>Action</th>
+                                </thead>
+                            <tbody id="product-table"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="card p-3 shadow-sm mb-4 bg-white" style="height: 575px; overflow-y: auto;">
+                    <h4 class="card-title text-danger mb-3">FICO Double-Entry Live Stream</h4>
+                    <div id="transaction-log">
+                        <div class="text-muted small text-center p-5">System ready. Process pipeline transactions to view real-time ledger accounting logs.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
