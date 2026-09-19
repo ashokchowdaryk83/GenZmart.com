@@ -1,103 +1,205 @@
+```html
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Live Integrated Rupee ERP</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Genzmart Enterprise Architecture Suite</title>
     <link rel="stylesheet" href="https://jsdelivr.net">
-    <script>
-        async function fetchMarket() {
-            try {
-                let res = await fetch('/api/market');
-                let tickers = await res.json();
-                let html = '';
-                for(let key in tickers) {
-                    html += `<div class="col-md-3"><div class="p-3 bg-dark text-white rounded text-center mb-3">
-                             <small class="text-warning">${key}</small><h4>${tickers[key]}</h4></div></div>`;
-                }
-                document.getElementById('ticker-row').innerHTML = html;
-            } catch (e) { console.error(e); }
+    <link rel="stylesheet" href="https://jsdelivr.net">
+    <style>
+        body { background: #f8fafc; font-family: system-ui, sans-serif; }
+        .gradient-header {
+            background: linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%);
+            color: white; border-bottom: 4px solid #4f46e5;
         }
-        async function loadProducts() {
-            try {
-                let res = await fetch('/api/products');
-                let prods = await res.json();
-                let html = '';
-                for(let id in prods) {
-                    html += `<tr>
-                        <td><b>${prods[id].name}</b><br><small class="text-muted">${prods[id].cat}</small></td>
-                        <td>Rupees ${prods[id].price.toLocaleString('en-IN')}</td>
-                        <td>Buy ${prods[id].bulk_qty}+ get ${prods[id].bulk_disc}% off</td>
-                        <td><span class="badge bg-info">${prods[id].stock} units</span></td>
-                        <td>
-                            <input type="number" id="qty-${id}" value="1" min="1" class="form-control d-inline-block w-50 me-2" style="max-width:80px;">
-                            <button class="btn btn-success btn-sm" onclick="triggerOrder('${id}')">Process Order</button>
-                        </td>
-                    </tr>`;
-                }
-                document.getElementById('product-table').innerHTML = html;
-            } catch (e) { console.error(e); }
-        }
-        async function triggerOrder(id) {
-            try {
-                let qty = document.getElementById('qty-' + id).value;
-                let res = await fetch('/api/order', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({id: id, qty: qty})
-                });
-                let result = await res.json();
-                if(result.error) {
-                    alert(result.error);
-                } else {
-                    let logHtml = `<div class="alert alert-success mt-2">
-                        <b>Invoice:</b> ${result.invoice_no} | <b>Processed:</b> ${result.amount_processed}<br>
-                        <small class="text-primary">${result.pp_info}</small><br>
-                        <small class="text-muted">${result.fico_log}</small>
-                    </div>`;
-                    document.getElementById('transaction-log').insertAdjacentHTML('afterbegin', logHtml);
-                    loadProducts();
-                }
-            } catch (e) { console.error(e); }
-        }
-        window.onload = function() {
-            fetchMarket();
-            loadProducts();
-            setInterval(fetchMarket, 5000);
-        }
-    </script>
+        .module-card { border: none; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); background: white; }
+        .product-img { height: 160px; object-fit: cover; border-top-left-radius: 12px; border-top-right-radius: 12px; width: 100%; background-color: #cbd5e1; }
+        .ticker-box { background: #1e293b; color: white; border-left: 4px solid #10b981; border-radius: 6px; }
+        .invoice-sheet { border: 2px dashed #94a3b8; background: #fffdf5; border-radius: 8px; position: relative; }
+        .invoice-sheet::after { content: "GENZMART VERIFIED NODE"; position: absolute; bottom: 10px; right: 15px; font-size: 9px; font-weight: 900; color: rgba(0,0,0,0.02); letter-spacing: 2px; }
+        .status-badge { width: 130px; text-align: center; font-weight: 600; padding: 6px; }
+    </style>
 </head>
-<body class="bg-light p-4">
-    <div class="container-fluid">
-        <h1 class="mb-4 text-center text-primary fw-bold">Enterprise Integrated Rupee ERP Architecture</h1>
-        <h5 class="text-muted mb-3">Live Global Commodity Tickers</h5>
-        <div class="row" id="ticker-row"></div>
-        <div class="row mt-4">
-            <div class="col-lg-8">
-                <div class="card p-3 shadow-sm mb-4">
-                    <h4 class="card-title text-success mb-3">Material Management & Sales Hub</h4>
-                    <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
-                        <table class="table table-hover align-middle">
-                            <thead class="table-dark">
-                                <tr>
-                                    <th>Product Details</th>
-                                    <th>Base Price</th>
-                                    <th>Bulk Engine</th>
-                                    <th>Stock Control</th>
-                                    <th>Action</th>
-                                </thead>
-                            <tbody id="product-table"></tbody>
-                        </table>
-                    </div>
+<body>
+
+<div class="gradient-header py-4 px-4 mb-4 shadow-sm">
+    <div class="container-fluid d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="fw-bold mb-0 text-white fs-3">Genzmart Enterprise Resource Management</h1>
+            <p class="mb-0 text-white-50 small">Unified Framework Matrix: SD • MM • PP • FICO Financial Operations • IoT Campus Traceability Core</p>
+        </div>
+        <div><span class="badge bg-success px-3 py-2 rounded-pill shadow-sm">Production Active</span></div>
+    </div>
+</div>
+
+<div class="container-fluid px-4">
+    <!-- LIVE PRICES GENERATOR COMMODITY RUN -->
+    <div class="mb-4">
+        <h6 class="text-uppercase text-secondary fw-bold mb-2 small"><i class="bi bi-broadcast text-danger me-2"></i>Live Infrastructure Commodity Index Pipelines</h6>
+        <div class="row g-3" id="ticker-row"></div>
+    </div>
+
+    <div class="row g-4">
+        <!-- OPERATIONAL GRID HUB -->
+        <div class="col-xl-8">
+            
+            <!-- CAMPUS TRACEABILITY MATRIX -->
+            <div class="module-card p-4 mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="text-dark fw-bold mb-0 text-primary"><i class="bi bi-person-bounding-box me-2"></i>IoT Campus Safety & Traceability Node</h5>
+                    <button class="btn btn-xs btn-outline-primary py-1 px-2 small" onclick="pollTelemetry()"><i class="bi bi-cpu me-1"></i>Force Sensor Scan</button>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle bg-white rounded border border-light mb-0" style="font-size:13px;">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Student Identity</th>
+                                <th>Department Link</th>
+                                <th>Registered Hardware Sensor</th>
+                                <th>Activity Vector</th>
+                                <th>Tracking Status Flag</th>
+                            </tr>
+                        </thead>
+                        <tbody id="student-target"></tbody>
+                    </table>
                 </div>
             </div>
-            <div class="col-lg-4">
-                <div class="card p-3 shadow-sm mb-4 bg-white" style="height: 575px; overflow-y: auto;">
-                    <h4 class="card-title text-danger mb-3">FICO Double-Entry Live Stream</h4>
-                    <div id="transaction-log">
-                        <div class="text-muted small text-center p-5">System ready. Process pipeline transactions to view real-time ledger accounting logs.</div>
+
+            <!-- E-COMMERCE COMMERCIAL SHOWROOM -->
+            <div class="module-card p-4">
+                <h5 class="text-success fw-bold mb-3"><i class="bi bi-grid-3x3-gap-fill me-2"></i>Enterprise Material Distribution Warehouse</h5>
+                <div class="row g-3" id="catalog-target"></div>
+            </div>
+        </div>
+
+        <!-- TRANSACTIONAL SETTLEMENT -->
+        <div class="col-xl-4">
+            <div class="module-card p-4 mb-4 sticky-top" style="top: 20px; z-index: 1020;">
+                <h5 class="text-danger fw-bold mb-3"><i class="bi bi-receipt me-2"></i>FICO Clearing & Settlement Pipeline</h5>
+                
+                <div class="mb-3">
+                    <label class="form-label small fw-bold text-muted">Assign Debtor Client Node Matrix:</label>
+                    <input type="text" id="debtor-input" class="form-control form-control-sm" placeholder="e.g. Tata Global Distribution Logistics">
+                </div>
+
+                <div id="invoice-target">
+                    <div class="text-center p-5 border border-dashed rounded text-muted bg-white small">
+                        <i class="bi bi-shield-lock-fill display-6 d-block mb-2 text-slate-300"></i>
+                        Awaiting operational pipeline ledger execution. Place an order context from the MM panel to generate matching invoices.
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</body>
-</html>
+</div>
+
+<script>
+    async function fetchTickers() {
+        try {
+            let res = await fetch('/api/market');
+            let data = await res.json();
+            let html = '';
+            for(let key in data) {
+                html += `
+                    <div class="col-md-4">
+                        <div class="p-3 ticker-box shadow-sm">
+                            <small class="text-muted text-uppercase d-block fw-semibold mb-1" style="font-size:10px;">${key}</small>
+                            <span class="fs-6 fw-bold text-success">${data[key]}</span>
+                        </div>
+                    </div>`;
+            }
+            document.getElementById('ticker-row').innerHTML = html;
+        } catch(e) { console.error(e); }
+    }
+
+    async function pollTelemetry() {
+        try {
+            let res = await fetch('/api/traceability');
+            let students = await res.json();
+            let html = '';
+            students.forEach(s => {
+                let badge = s.status === 'In Class' ? 'bg-success-subtle text-success border border-success' : 'bg-danger-subtle text-danger border border-danger animate-pulse';
+                let icon = s.status === 'In Class' ? 'bi-building-check' : 'bi-geo-alt';
+                html += `
+                    <tr>
+                        <td><strong>${s.name}</strong><br><small class="text-muted font-monospace">${s.id}</small></td>
+                        <td class="text-secondary fw-semibold">${s.dept}</td>
+                        <td><span class="font-monospace text-slate-700"><i class="bi bi-hdd-network-fill text-indigo me-1"></i>${s.sensor}</span></td>
+                        <td class="text-muted small">${s.activity}</td>
+                        <td><span class="badge ${badge} status-badge"><i class="bi ${icon} me-1"></i>${s.status}</span></td>
+                    </tr>`;
+            });
+            document.getElementById('student-target').innerHTML = html;
+        } catch(e) { console.error(e); }
+    }
+
+    async function loadCatalog() {
+        try {
+            let res = await fetch('/api/products');
+            let prods = await res.json();
+            let html = '';
+            for(let id in prods) {
+                html += `
+                    <div class="col-md-6 col-sm-12">
+                        <div class="card h-100 shadow-sm border-light" style="border-radius:12px; overflow:hidden;">
+                            <img src="${prods[id].img}" class="product-img" alt="Luxury Asset Asset">
+                            <div class="card-body p-3 d-flex flex-column justify-content-between">
+                                <div>
+                                    <span class="badge bg-dark-subtle text-dark text-xxs px-2 py-1 mb-1">${prods[id].cat}</span>
+                                    <h6 class="fw-bold mb-1 text-slate-800" style="font-size:14px;">${prods[id].name}</h6>
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span class="text-primary fw-bold fs-6">₹${prods[id].price.toLocaleString('en-IN')}</span>
+                                        <span class="small text-muted border px-1 rounded bg-light">Stock: ${prods[id].stock}</span>
+                                    </div>
+                                    <div class="p-2 bg-light rounded text-muted mb-2 font-monospace" style="font-size:10px;">
+                                        Bulk Rule: Orders ≥ ${prods[id].bulk_qty} item lines secure ${prods[id].bulk_disc}% ledger markdown automatically.
+                                    </div>
+                                </div>
+                                <div class="d-flex gap-2 align-items-center mt-2">
+                                    <input type="number" id="qty-${id}" value="1" min="1" class="form-control form-control-sm text-center" style="width:55px; height:31px;">
+                                    <button class="btn btn-primary btn-sm flex-grow-1 py-1" onclick="submitPipelineOrder('${id}')">
+                                        <i class="bi bi-lightning-fill me-1"></i>Post Order Line
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+            }
+            document.getElementById('catalog-target').innerHTML = html;
+        } catch(e) { console.error(e); }
+    }
+
+    async function submitPipelineOrder(id) {
+        let qty = document.getElementById('qty-' + id).value;
+        let clientName = document.getElementById('debtor-input').value || "Walk-In Corporate Matrix Node";
+        try {
+            let res = await fetch('/api/order', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({id: id, qty: qty, client_name: clientName})});
+            let out = await res.json();
+            if(out.error) 
+            {alert(out.error);}
+            else {
+                renderInvoice(out);
+                loadCatalog();
+            }
+        }
+        catch(e) { alert("Core matrix linkage broken."); }
+    }function renderInvoice(inv) 
+    {
+        let html = `GENZMART PVT LTDPasumarru Node, IndiaGSTIN: 37AAACG0000F1Z2
+        Tax Ledger Sheet
+        ${inv.invoice_no}
+        ${inv.date}
+        Billed FICO Node Account:${inv.client}
+        Line Item DetailsRateQtyValue${inv.product_name}${inv.base_price}${inv.qty}${inv.subtotal}Automated Volume Rebate:-${inv.discount_applied}Net Settle Balance (INR):${inv.total}FICO Double-Entry Posting:${inv.ledger_log}PP Manufacturing Action Log:${inv.pp_info}`;document.getElementById('invoice-target').innerHTML = html;}
+    window.onload = function() {
+        fetchTickers();
+        pollTelemetry();
+        loadCatalog();
+        setInterval(fetchTickers, 8000);
+        setInterval(pollTelemetry, 5000); // 5-second dynamic polling update intervals for IoT 
+        tracking sensors matrix}
+        
