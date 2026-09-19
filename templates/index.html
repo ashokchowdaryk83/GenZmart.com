@@ -1,205 +1,280 @@
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Genzmart Enterprise Architecture Suite</title>
-    <link rel="stylesheet" href="https://jsdelivr.net">
-    <link rel="stylesheet" href="https://jsdelivr.net">
-    <style>
-        body { background: #f8fafc; font-family: system-ui, sans-serif; }
-        .gradient-header {
-            background: linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%);
-            color: white; border-bottom: 4px solid #4f46e5;
-        }
-        .module-card { border: none; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); background: white; }
-        .product-img { height: 160px; object-fit: cover; border-top-left-radius: 12px; border-top-right-radius: 12px; width: 100%; background-color: #cbd5e1; }
-        .ticker-box { background: #1e293b; color: white; border-left: 4px solid #10b981; border-radius: 6px; }
-        .invoice-sheet { border: 2px dashed #94a3b8; background: #fffdf5; border-radius: 8px; position: relative; }
-        .invoice-sheet::after { content: "GENZMART VERIFIED NODE"; position: absolute; bottom: 10px; right: 15px; font-size: 9px; font-weight: 900; color: rgba(0,0,0,0.02); letter-spacing: 2px; }
-        .status-badge { width: 130px; text-align: center; font-weight: 600; padding: 6px; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GenZsmart — Luxury Trade &amp; ERP Console</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ivory:#FAF6ED; --panel:#FFFFFF; --ink:#241512; --ink-soft:#6B5A54;
+    --maroon:#6B1E28; --maroon-deep:#4A121A; --gold:#B8912F; --gold-soft:#F0E3BE;
+    --line: rgba(36,21,18,0.12); --good:#3E6B4A;
+  }
+  *{ box-sizing:border-box; }
+  body{ margin:0; background:var(--ivory); color:var(--ink); font-family:'Inter',system-ui,sans-serif; }
+  h1,h2,h3{ font-family:'Cormorant Garamond', serif; margin:0; }
+
+  /* ---- ticker ---- */
+  .ticker-bar{ background:var(--maroon-deep); color:var(--gold-soft); overflow:hidden; white-space:nowrap; padding:9px 0; }
+  .ticker-track{ display:inline-block; padding-left:100%; animation: scroll-left 28s linear infinite; font-size:13.5px; letter-spacing:0.01em; }
+  .ticker-track span{ margin-right:44px; }
+  .ticker-track .up{ color:#8FD19E; } .ticker-track .down{ color:#E39A94; }
+  @keyframes scroll-left{ from{ transform:translateX(0);} to{ transform:translateX(-100%);} }
+  @media (prefers-reduced-motion: reduce){ .ticker-track{ animation:none; } }
+
+  header.top{ padding:26px 32px 18px; border-bottom:1px solid var(--line); background:var(--panel); }
+  header.top .brand{ display:flex; align-items:baseline; gap:14px; }
+  header.top h1{ font-size:30px; font-weight:700; color:var(--maroon); }
+  header.top .tag{ font-size:13px; color:var(--ink-soft); }
+
+  nav.tabs{ display:flex; gap:4px; padding:0 32px; background:var(--panel); border-bottom:1px solid var(--line); }
+  nav.tabs button{
+    padding:14px 18px; border:none; background:none; font-family:inherit; font-size:14px; font-weight:500;
+    color:var(--ink-soft); cursor:pointer; border-bottom:2.5px solid transparent;
+  }
+  nav.tabs button.active{ color:var(--maroon); border-bottom-color:var(--maroon); }
+
+  main{ max-width:1180px; margin:0 auto; padding:28px 24px 80px; }
+  .view{ display:none; } .view.active{ display:block; }
+
+  .grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(240px,1fr)); gap:22px; }
+  .card{ background:var(--panel); border:1px solid var(--line); border-radius:4px; overflow:hidden; }
+  .card img{ width:100%; aspect-ratio:5/4; object-fit:cover; display:block; }
+  .card .body{ padding:14px 16px 16px; }
+  .card .cat{ font-size:11.5px; color:var(--gold); font-weight:600; margin-bottom:4px; }
+  .card h3{ font-size:16.5px; font-weight:600; line-height:1.3; margin-bottom:8px; min-height:42px; }
+  .card .price{ font-size:17px; font-weight:700; color:var(--maroon); }
+  .card .gst{ font-size:11.5px; color:var(--ink-soft); margin-top:2px; }
+  .card .stock{ font-size:11.5px; color:var(--ink-soft); margin-top:2px; }
+  .card .disc{ display:inline-block; font-size:11px; background:var(--gold-soft); color:#7A5E12; padding:2px 7px; border-radius:100px; margin-top:6px; }
+  .card button.order-btn{
+    width:100%; margin-top:12px; padding:9px; border:none; border-radius:3px; background:var(--maroon);
+    color:#fff; font-family:inherit; font-weight:500; font-size:13.5px; cursor:pointer;
+  }
+
+  /* ---- modal ---- */
+  .backdrop{ position:fixed; inset:0; background:rgba(36,21,18,0.55); display:flex; align-items:center; justify-content:center; padding:20px; z-index:50; }
+  .backdrop[hidden]{ display:none; }
+  .modal{ background:var(--panel); border-radius:6px; width:100%; max-width:460px; max-height:88vh; overflow-y:auto; padding:26px; position:relative; }
+  .modal h2{ font-size:22px; margin-bottom:14px; }
+  .modal label{ display:block; font-size:12.5px; color:var(--ink-soft); margin:12px 0 4px; }
+  .modal input, .modal select{ width:100%; padding:9px 10px; border:1px solid var(--line); border-radius:3px; font-family:inherit; font-size:14px; }
+  .modal .close{ position:absolute; top:14px; right:14px; background:none; border:none; font-size:18px; cursor:pointer; color:var(--ink-soft); }
+  .modal button.submit{ width:100%; margin-top:18px; padding:11px; background:var(--maroon); color:#fff; border:none; border-radius:3px; font-family:inherit; font-weight:600; font-size:14px; cursor:pointer; }
+
+  .invoice{ font-size:13.5px; line-height:1.7; }
+  .invoice .row{ display:flex; justify-content:space-between; border-top:1px solid var(--line); padding:7px 0; }
+  .invoice .row.total{ font-weight:700; color:var(--maroon); font-size:15px; }
+  .invoice .note{ margin-top:12px; font-size:12px; color:var(--ink-soft); background:var(--gold-soft); padding:8px 10px; border-radius:3px; }
+
+  table{ width:100%; border-collapse:collapse; font-size:13.5px; background:var(--panel); }
+  table th, table td{ text-align:left; padding:10px 12px; border-bottom:1px solid var(--line); }
+  table th{ color:var(--ink-soft); font-weight:600; font-size:12px; text-transform:none; }
+  .panel-block{ background:var(--panel); border:1px solid var(--line); border-radius:4px; overflow:hidden; margin-bottom:20px; }
+  .panel-head{ padding:14px 16px; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; align-items:center; }
+  .panel-head h2{ font-size:19px; }
+  .badge{ font-size:11px; font-weight:600; color:var(--maroon); background:var(--gold-soft); padding:3px 8px; border-radius:100px; }
+
+  .lookup{ display:flex; gap:8px; padding:14px 16px; border-bottom:1px solid var(--line); }
+  .lookup input{ flex:1; padding:9px 10px; border:1px solid var(--line); border-radius:3px; font-family:inherit; font-size:14px; }
+  .lookup button{ padding:9px 16px; border:none; border-radius:3px; background:var(--maroon); color:#fff; font-family:inherit; cursor:pointer; font-size:13.5px; }
+  .empty-note{ padding:22px 16px; color:var(--ink-soft); font-size:13.5px; }
+</style>
 </head>
 <body>
 
-<div class="gradient-header py-4 px-4 mb-4 shadow-sm">
-    <div class="container-fluid d-flex justify-content-between align-items-center">
-        <div>
-            <h1 class="fw-bold mb-0 text-white fs-3">Genzmart Enterprise Resource Management</h1>
-            <p class="mb-0 text-white-50 small">Unified Framework Matrix: SD • MM • PP • FICO Financial Operations • IoT Campus Traceability Core</p>
-        </div>
-        <div><span class="badge bg-success px-3 py-2 rounded-pill shadow-sm">Production Active</span></div>
+<div class="ticker-bar"><div class="ticker-track" id="tickerTrack">Loading live commodity prices…</div></div>
+
+<header class="top">
+  <div class="brand">
+    <h1>GenZsmart</h1>
+    <span class="tag">Luxury trade console — SD · MM · PP · FICO</span>
+  </div>
+</header>
+
+<nav class="tabs">
+  <button class="tab-btn active" data-view="catalog">Catalog <span class="badge">SD</span></button>
+  <button class="tab-btn" data-view="ledgerCustomer">Customer Account Book <span class="badge">FICO</span></button>
+  <button class="tab-btn" data-view="ledgerCompany">Financial Journal <span class="badge">FICO</span></button>
+</nav>
+
+<main>
+  <section class="view active" id="view-catalog">
+    <div class="grid" id="productGrid"></div>
+  </section>
+
+  <section class="view" id="view-ledgerCustomer">
+    <div class="panel-block">
+      <div class="panel-head"><h2>Customer Account Book</h2></div>
+      <div class="lookup">
+        <input id="custNameInput" placeholder="Enter customer name exactly as used at checkout">
+        <button id="custLookupBtn">Look up</button>
+      </div>
+      <div id="custResult"><p class="empty-note">Search a customer to see their statement — running balance and every invoice posted to their account.</p></div>
     </div>
-</div>
+  </section>
 
-<div class="container-fluid px-4">
-    <!-- LIVE PRICES GENERATOR COMMODITY RUN -->
-    <div class="mb-4">
-        <h6 class="text-uppercase text-secondary fw-bold mb-2 small"><i class="bi bi-broadcast text-danger me-2"></i>Live Infrastructure Commodity Index Pipelines</h6>
-        <div class="row g-3" id="ticker-row"></div>
+  <section class="view" id="view-ledgerCompany">
+    <div class="panel-block">
+      <div class="panel-head"><h2>General Ledger — Journal Entries</h2></div>
+      <div id="glResult"><p class="empty-note">No journal entries yet. Place an order from the Catalog tab to post the first entries.</p></div>
     </div>
+  </section>
+</main>
 
-    <div class="row g-4">
-        <!-- OPERATIONAL GRID HUB -->
-        <div class="col-xl-8">
-            
-            <!-- CAMPUS TRACEABILITY MATRIX -->
-            <div class="module-card p-4 mb-4">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h5 class="text-dark fw-bold mb-0 text-primary"><i class="bi bi-person-bounding-box me-2"></i>IoT Campus Safety & Traceability Node</h5>
-                    <button class="btn btn-xs btn-outline-primary py-1 px-2 small" onclick="pollTelemetry()"><i class="bi bi-cpu me-1"></i>Force Sensor Scan</button>
-                </div>
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle bg-white rounded border border-light mb-0" style="font-size:13px;">
-                        <thead class="table-dark">
-                            <tr>
-                                <th>Student Identity</th>
-                                <th>Department Link</th>
-                                <th>Registered Hardware Sensor</th>
-                                <th>Activity Vector</th>
-                                <th>Tracking Status Flag</th>
-                            </tr>
-                        </thead>
-                        <tbody id="student-target"></tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- E-COMMERCE COMMERCIAL SHOWROOM -->
-            <div class="module-card p-4">
-                <h5 class="text-success fw-bold mb-3"><i class="bi bi-grid-3x3-gap-fill me-2"></i>Enterprise Material Distribution Warehouse</h5>
-                <div class="row g-3" id="catalog-target"></div>
-            </div>
-        </div>
-
-        <!-- TRANSACTIONAL SETTLEMENT -->
-        <div class="col-xl-4">
-            <div class="module-card p-4 mb-4 sticky-top" style="top: 20px; z-index: 1020;">
-                <h5 class="text-danger fw-bold mb-3"><i class="bi bi-receipt me-2"></i>FICO Clearing & Settlement Pipeline</h5>
-                
-                <div class="mb-3">
-                    <label class="form-label small fw-bold text-muted">Assign Debtor Client Node Matrix:</label>
-                    <input type="text" id="debtor-input" class="form-control form-control-sm" placeholder="e.g. Tata Global Distribution Logistics">
-                </div>
-
-                <div id="invoice-target">
-                    <div class="text-center p-5 border border-dashed rounded text-muted bg-white small">
-                        <i class="bi bi-shield-lock-fill display-6 d-block mb-2 text-slate-300"></i>
-                        Awaiting operational pipeline ledger execution. Place an order context from the MM panel to generate matching invoices.
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+<div class="backdrop" id="orderBackdrop" hidden>
+  <div class="modal" id="orderModalBody"></div>
 </div>
 
 <script>
-    async function fetchTickers() {
-        try {
-            let res = await fetch('/api/market');
-            let data = await res.json();
-            let html = '';
-            for(let key in data) {
-                html += `
-                    <div class="col-md-4">
-                        <div class="p-3 ticker-box shadow-sm">
-                            <small class="text-muted text-uppercase d-block fw-semibold mb-1" style="font-size:10px;">${key}</small>
-                            <span class="fs-6 fw-bold text-success">${data[key]}</span>
-                        </div>
-                    </div>`;
-            }
-            document.getElementById('ticker-row').innerHTML = html;
-        } catch(e) { console.error(e); }
-    }
+// ---------- tabs ----------
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('view-'+btn.dataset.view).classList.add('active');
+    if(btn.dataset.view === 'ledgerCompany') loadGL();
+  });
+});
 
-    async function pollTelemetry() {
-        try {
-            let res = await fetch('/api/traceability');
-            let students = await res.json();
-            let html = '';
-            students.forEach(s => {
-                let badge = s.status === 'In Class' ? 'bg-success-subtle text-success border border-success' : 'bg-danger-subtle text-danger border border-danger animate-pulse';
-                let icon = s.status === 'In Class' ? 'bi-building-check' : 'bi-geo-alt';
-                html += `
-                    <tr>
-                        <td><strong>${s.name}</strong><br><small class="text-muted font-monospace">${s.id}</small></td>
-                        <td class="text-secondary fw-semibold">${s.dept}</td>
-                        <td><span class="font-monospace text-slate-700"><i class="bi bi-hdd-network-fill text-indigo me-1"></i>${s.sensor}</span></td>
-                        <td class="text-muted small">${s.activity}</td>
-                        <td><span class="badge ${badge} status-badge"><i class="bi ${icon} me-1"></i>${s.status}</span></td>
-                    </tr>`;
-            });
-            document.getElementById('student-target').innerHTML = html;
-        } catch(e) { console.error(e); }
-    }
+// ---------- live ticker ----------
+async function loadTicker(){
+  try{
+    const res = await fetch('/api/market');
+    const data = await res.json();
+    const track = document.getElementById('tickerTrack');
+    track.innerHTML = data.map(t=>{
+      const cls = t.change_pct >= 0 ? 'up' : 'down';
+      const arrow = t.change_pct >= 0 ? '▲' : '▼';
+      return `<span>${t.name}: ${t.price} <span class="${cls}">${arrow} ${Math.abs(t.change_pct)}%</span></span>`;
+    }).join('');
+  }catch(e){ /* silent */ }
+}
+loadTicker();
+setInterval(loadTicker, 5000);
 
-    async function loadCatalog() {
-        try {
-            let res = await fetch('/api/products');
-            let prods = await res.json();
-            let html = '';
-            for(let id in prods) {
-                html += `
-                    <div class="col-md-6 col-sm-12">
-                        <div class="card h-100 shadow-sm border-light" style="border-radius:12px; overflow:hidden;">
-                            <img src="${prods[id].img}" class="product-img" alt="Luxury Asset Asset">
-                            <div class="card-body p-3 d-flex flex-column justify-content-between">
-                                <div>
-                                    <span class="badge bg-dark-subtle text-dark text-xxs px-2 py-1 mb-1">${prods[id].cat}</span>
-                                    <h6 class="fw-bold mb-1 text-slate-800" style="font-size:14px;">${prods[id].name}</h6>
-                                    <div class="d-flex justify-content-between align-items-center mb-2">
-                                        <span class="text-primary fw-bold fs-6">₹${prods[id].price.toLocaleString('en-IN')}</span>
-                                        <span class="small text-muted border px-1 rounded bg-light">Stock: ${prods[id].stock}</span>
-                                    </div>
-                                    <div class="p-2 bg-light rounded text-muted mb-2 font-monospace" style="font-size:10px;">
-                                        Bulk Rule: Orders ≥ ${prods[id].bulk_qty} item lines secure ${prods[id].bulk_disc}% ledger markdown automatically.
-                                    </div>
-                                </div>
-                                <div class="d-flex gap-2 align-items-center mt-2">
-                                    <input type="number" id="qty-${id}" value="1" min="1" class="form-control form-control-sm text-center" style="width:55px; height:31px;">
-                                    <button class="btn btn-primary btn-sm flex-grow-1 py-1" onclick="submitPipelineOrder('${id}')">
-                                        <i class="bi bi-lightning-fill me-1"></i>Post Order Line
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>`;
-            }
-            document.getElementById('catalog-target').innerHTML = html;
-        } catch(e) { console.error(e); }
-    }
+// ---------- catalog ----------
+let PRODUCTS = {};
+async function loadProducts(){
+  const res = await fetch('/api/products');
+  PRODUCTS = await res.json();
+  const grid = document.getElementById('productGrid');
+  grid.innerHTML = Object.entries(PRODUCTS).map(([id,p])=> `
+    <div class="card">
+      <img src="${p.img}" alt="${p.name}" loading="lazy">
+      <div class="body">
+        <p class="cat">${p.cat}</p>
+        <h3>${p.name}</h3>
+        <p class="price">₹${p.price.toLocaleString('en-IN')}</p>
+        <p class="gst">GST ${p.gst_rate}% · Stock ${p.stock}</p>
+        <span class="disc">${p.bulk_disc}% off at ${p.bulk_qty}+ units</span>
+        <button class="order-btn" data-id="${id}">Order</button>
+      </div>
+    </div>
+  `).join('');
+}
+loadProducts();
 
-    async function submitPipelineOrder(id) {
-        let qty = document.getElementById('qty-' + id).value;
-        let clientName = document.getElementById('debtor-input').value || "Walk-In Corporate Matrix Node";
-        try {
-            let res = await fetch('/api/order', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({id: id, qty: qty, client_name: clientName})});
-            let out = await res.json();
-            if(out.error) 
-            {alert(out.error);}
-            else {
-                renderInvoice(out);
-                loadCatalog();
-            }
-        }
-        catch(e) { alert("Core matrix linkage broken."); }
-    }function renderInvoice(inv) 
-    {
-        let html = `GENZMART PVT LTDPasumarru Node, IndiaGSTIN: 37AAACG0000F1Z2
-        Tax Ledger Sheet
-        ${inv.invoice_no}
-        ${inv.date}
-        Billed FICO Node Account:${inv.client}
-        Line Item DetailsRateQtyValue${inv.product_name}${inv.base_price}${inv.qty}${inv.subtotal}Automated Volume Rebate:-${inv.discount_applied}Net Settle Balance (INR):${inv.total}FICO Double-Entry Posting:${inv.ledger_log}PP Manufacturing Action Log:${inv.pp_info}`;document.getElementById('invoice-target').innerHTML = html;}
-    window.onload = function() {
-        fetchTickers();
-        pollTelemetry();
-        loadCatalog();
-        setInterval(fetchTickers, 8000);
-        setInterval(pollTelemetry, 5000); // 5-second dynamic polling update intervals for IoT 
-        tracking sensors matrix}
-        
+// ---------- order modal ----------
+const backdrop = document.getElementById('orderBackdrop');
+const modalBody = document.getElementById('orderModalBody');
+
+document.getElementById('productGrid').addEventListener('click', e=>{
+  const btn = e.target.closest('.order-btn');
+  if(!btn) return;
+  const p = PRODUCTS[btn.dataset.id];
+  modalBody.innerHTML = `
+    <button class="close" id="modalCloseBtn">✕</button>
+    <h2>${p.name}</h2>
+    <label>Customer / client name</label>
+    <input id="ordClient" placeholder="e.g. Ananya Reddy">
+    <label>Quantity</label>
+    <input id="ordQty" type="number" min="1" value="1">
+    <label>Billing</label>
+    <select id="ordState">
+      <option value="same">Intra-state (CGST + SGST)</option>
+      <option value="other">Inter-state (IGST)</option>
+    </select>
+    <button class="submit" id="ordSubmit">Place order</button>
+    <div id="ordResult"></div>
+  `;
+  backdrop.hidden = false;
+  document.getElementById('modalCloseBtn').addEventListener('click', ()=> backdrop.hidden = true);
+  document.getElementById('ordSubmit').addEventListener('click', async ()=>{
+    const client_name = document.getElementById('ordClient').value.trim();
+    const qty = parseInt(document.getElementById('ordQty').value, 10) || 1;
+    const state = document.getElementById('ordState').value;
+    const res = await fetch('/api/order', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ id: btn.dataset.id, qty, client_name, state })
+    });
+    const inv = await res.json();
+    if(inv.error){
+      document.getElementById('ordResult').innerHTML = `<p class="invoice">${inv.error}</p>`;
+      return;
+    }
+    document.getElementById('ordResult').innerHTML = `
+      <div class="invoice">
+        <div class="row"><span>Invoice</span><span>${inv.invoice_no}</span></div>
+        <div class="row"><span>Date</span><span>${inv.date}</span></div>
+        <div class="row"><span>Qty</span><span>${inv.qty}</span></div>
+        <div class="row"><span>Base price</span><span>₹${inv.base_price.toLocaleString('en-IN')}</span></div>
+        <div class="row"><span>Discount (${inv.discount_pct}%)</span><span>-₹${inv.discount_value.toLocaleString('en-IN')}</span></div>
+        <div class="row"><span>Taxable value</span><span>₹${inv.taxable_value.toLocaleString('en-IN')}</span></div>
+        ${inv.igst ? `<div class="row"><span>IGST (${inv.gst_rate}%)</span><span>₹${inv.igst.toLocaleString('en-IN')}</span></div>`
+                    : `<div class="row"><span>CGST (${inv.gst_rate/2}%)</span><span>₹${inv.cgst.toLocaleString('en-IN')}</span></div>
+                       <div class="row"><span>SGST (${inv.gst_rate/2}%)</span><span>₹${inv.sgst.toLocaleString('en-IN')}</span></div>`}
+        <div class="row total"><span>Total</span><span>₹${inv.total.toLocaleString('en-IN')}</span></div>
+        <div class="note">${inv.pp_info}</div>
+      </div>
+    `;
+    loadProducts(); // refresh stock figures
+  });
+});
+
+// ---------- customer ledger ----------
+document.getElementById('custLookupBtn').addEventListener('click', async ()=>{
+  const name = document.getElementById('custNameInput').value.trim();
+  const box = document.getElementById('custResult');
+  if(!name){ box.innerHTML = '<p class="empty-note">Enter a customer name first.</p>'; return; }
+  const res = await fetch('/api/customer/' + encodeURIComponent(name));
+  if(res.status === 404){
+    box.innerHTML = '<p class="empty-note">No account history for this customer yet.</p>';
+    return;
+  }
+  const data = await res.json();
+  box.innerHTML = `
+    <table>
+      <thead><tr><th>Date</th><th>Invoice</th><th>Product</th><th>Qty</th><th>Total</th><th>Running balance</th></tr></thead>
+      <tbody>
+        ${data.entries.map(e=> `<tr><td>${e.date}</td><td>${e.invoice_no}</td><td>${e.product}</td><td>${e.qty}</td><td>₹${e.total.toLocaleString('en-IN')}</td><td>₹${e.running_balance.toLocaleString('en-IN')}</td></tr>`).join('')}
+      </tbody>
+    </table>
+  `;
+});
+
+// ---------- company ledger ----------
+async function loadGL(){
+  const res = await fetch('/api/ledger');
+  const entries = await res.json();
+  const box = document.getElementById('glResult');
+  if(!entries.length){
+    box.innerHTML = '<p class="empty-note">No journal entries yet. Place an order from the Catalog tab to post the first entries.</p>';
+    return;
+  }
+  box.innerHTML = `
+    <table>
+      <thead><tr><th>Date</th><th>Invoice</th><th>Account</th><th>Debit</th><th>Credit</th></tr></thead>
+      <tbody>
+        ${entries.map(e=> `<tr><td>${e.date}</td><td>${e.invoice_no}</td><td>${e.account}</td><td>${e.debit ? '₹'+e.debit.toLocaleString('en-IN') : ''}</td><td>${e.credit ? '₹'+e.credit.toLocaleString('en-IN') : ''}</td></tr>`).join('')}
+      </tbody>
+    </table>
+  `;
+}
+</script>
+</body>
+</html>
